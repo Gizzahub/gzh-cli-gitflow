@@ -6,11 +6,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spf13/cobra"
+
 	"github.com/gizzahub/gzh-cli-gitflow/internal/gitcmd"
 	"github.com/gizzahub/gzh-cli-gitflow/internal/preflight"
 	"github.com/gizzahub/gzh-cli-gitflow/internal/validator"
 	"github.com/gizzahub/gzh-cli-gitflow/pkg/config"
-	"github.com/spf13/cobra"
 )
 
 var featureCmd = &cobra.Command{

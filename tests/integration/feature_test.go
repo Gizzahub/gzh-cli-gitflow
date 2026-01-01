@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-const testFileMode = 0644
+const testFileMode = 0o644
 
 func setupTestRepo(t *testing.T) string {
 	t.Helper()

@@ -200,7 +200,7 @@ func TestLoadFromDir(t *testing.T) {
 		}
 		// Should still return defaults
 		if cfg == nil {
-			t.Error("Config should not be nil")
+			t.Fatal("Config should not be nil")
 		}
 		if cfg.Branches.Master != "master" {
 			t.Errorf("Expected default 'master', got %s", cfg.Branches.Master)
