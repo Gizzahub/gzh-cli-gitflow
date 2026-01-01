@@ -1,9 +1,15 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/spf13/cobra"
+
+	"github.com/gizzahub/gzh-cli-gitflow/internal/gitcmd"
+	"github.com/gizzahub/gzh-cli-gitflow/internal/validator"
+	"github.com/gizzahub/gzh-cli-gitflow/pkg/config"
 )
 
 var releaseCmd = &cobra.Command{
@@ -69,15 +75,49 @@ func runReleaseStart(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	git := gitcmd.New()
 	version := args[0]
 
-	// TODO: Implement release start logic
-	// 1. Validate version format
-	// 2. Check out develop branch
-	// 3. Create release branch
+	// 1. Validate version format (strict semver)
+	if err := validator.ValidateVersion(version); err != nil {
+		return fmt.Errorf("invalid version: %v\n💡 Use semver format: 1.0.0", err)
+	}
 
-	fmt.Printf("Started release branch 'release/%s'\n", version)
-	fmt.Printf("Switched to branch 'release/%s'\n", version)
+	// 2. Load config
+	cfg, err := config.LoadFromDir(".")
+	if err != nil {
+		fmt.Printf("⚠️  Failed to load config, using defaults: %v\n", err)
+		cfg = config.Default()
+	}
+
+	// 3. Check if release branch already exists
+	releaseBranch := cfg.Prefixes.Release + version
+	exists, _ := git.BranchExists(ctx, releaseBranch)
+	if exists {
+		return fmt.Errorf("release branch '%s' already exists", releaseBranch)
+	}
+
+	// 4. Context hint: warn if not on develop
+	currentBranch, _ := git.CurrentBranch(ctx)
+	if currentBranch != cfg.Branches.Develop {
+		fmt.Printf("⚠️  You're on '%s', not '%s'\n", currentBranch, cfg.Branches.Develop)
+		fmt.Printf("💡 Will checkout '%s' first\n\n", cfg.Branches.Develop)
+	}
+
+	// 5. Create release branch from develop
+	if err := git.Checkout(ctx, cfg.Branches.Develop); err != nil {
+		return fmt.Errorf("failed to checkout %s: %v", cfg.Branches.Develop, err)
+	}
+
+	if err := git.CreateBranch(ctx, releaseBranch); err != nil {
+		return fmt.Errorf("failed to create branch: %v", err)
+	}
+
+	fmt.Printf("✅ Started release branch '%s'\n", releaseBranch)
+	fmt.Printf("📍 Switched to branch '%s'\n", releaseBranch)
 
 	return nil
 }
