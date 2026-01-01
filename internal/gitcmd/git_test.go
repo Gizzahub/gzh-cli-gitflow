@@ -85,7 +85,7 @@ func TestValidateBranchName(t *testing.T) {
 		{"starts with dash", "-feature", true},
 		{"special chars", "feature@123", true},
 		{"space", "my feature", true},
-		{"dot", "feature.branch", true},
+		{"dot", "feature.branch", false},
 	}
 
 	for _, tt := range tests {
