@@ -47,8 +47,8 @@ var (
 		"\r", // carriage return
 	}
 
-	defaultRegex        = regexp.MustCompile(DefaultPattern)
-	multiHyphenPattern  = regexp.MustCompile(`-+`)
+	defaultRegex       = regexp.MustCompile(DefaultPattern)
+	multiHyphenPattern = regexp.MustCompile(`-+`)
 )
 
 // ValidateBranchName validates a branch name according to git-flow conventions

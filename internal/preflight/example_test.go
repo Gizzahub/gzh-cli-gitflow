@@ -19,7 +19,7 @@ func ExampleChecker_RunAll_success() {
 		},
 	}
 
-	checker := preflight.New(mockGit).WithTargetBranch("develop")
+	checker := preflight.NewChecker(mockGit, "develop")
 	results := checker.RunAll(context.Background())
 
 	fmt.Print(results.String())
@@ -40,14 +40,14 @@ func ExampleChecker_RunAll_failure() {
 		},
 	}
 
-	checker := preflight.New(mockGit).WithTargetBranch("develop")
+	checker := preflight.NewChecker(mockGit, "develop")
 	results := checker.RunAll(context.Background())
 
 	fmt.Print(results.String())
 	// Output:
 	// Pre-flight checks:
 	//   ❌ Clean working tree
-	//      Hint: Commit or stash your changes before finishing
+	//      💡 Commit or stash your changes before finishing
 	//   ❌ Target branch 'develop' exists
-	//      Hint: Create branch 'develop' first or check your configuration
+	//      💡 Create branch 'develop' first or check your configuration
 }

@@ -20,7 +20,7 @@ func TestChecker_RunAll(t *testing.T) {
 			},
 		}
 
-		checker := preflight.New(mockGit).WithTargetBranch("develop")
+		checker := preflight.NewChecker(mockGit, "develop")
 		results := checker.RunAll(context.Background())
 
 		if results.HasErrors() {
@@ -35,7 +35,7 @@ func TestChecker_RunAll(t *testing.T) {
 			},
 		}
 
-		checker := preflight.New(mockGit)
+		checker := preflight.NewChecker(mockGit, "")
 		results := checker.RunAll(context.Background())
 
 		if !results.HasErrors() {
@@ -53,7 +53,7 @@ func TestChecker_RunAll(t *testing.T) {
 			},
 		}
 
-		checker := preflight.New(mockGit).WithTargetBranch("develop")
+		checker := preflight.NewChecker(mockGit, "develop")
 		results := checker.RunAll(context.Background())
 
 		if !results.HasErrors() {
@@ -65,8 +65,8 @@ func TestChecker_RunAll(t *testing.T) {
 		if !strings.Contains(output, "❌") {
 			t.Error("Expected error emoji in output")
 		}
-		if !strings.Contains(output, "Hint:") {
-			t.Error("Expected hint in output")
+		if !strings.Contains(output, "💡") {
+			t.Error("Expected hint emoji in output")
 		}
 	})
 
@@ -80,7 +80,7 @@ func TestChecker_RunAll(t *testing.T) {
 			},
 		}
 
-		checker := preflight.New(mockGit).WithTargetBranch("develop")
+		checker := preflight.NewChecker(mockGit, "develop")
 		results := checker.RunAll(context.Background())
 
 		output := results.String()
@@ -91,4 +91,51 @@ func TestChecker_RunAll(t *testing.T) {
 			t.Error("Expected header in output")
 		}
 	})
+}
+
+func TestResult_HasErrors(t *testing.T) {
+	tests := []struct {
+		name    string
+		results preflight.Results
+		want    bool
+	}{
+		{
+			name: "no errors",
+			results: preflight.Results{
+				{Name: "clean", Passed: true},
+				{Name: "uptodate", Passed: true},
+			},
+			want: false,
+		},
+		{
+			name: "one error",
+			results: preflight.Results{
+				{Name: "clean", Passed: true},
+				{Name: "uptodate", Passed: false, Error: "", Hint: "not up to date"},
+			},
+			want: true,
+		},
+		{
+			name: "all errors",
+			results: preflight.Results{
+				{Name: "clean", Passed: false, Error: "", Hint: "dirty"},
+				{Name: "uptodate", Passed: false, Error: "", Hint: "not up to date"},
+			},
+			want: true,
+		},
+		{
+			name:    "empty results",
+			results: preflight.Results{},
+			want:    false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.results.HasErrors()
+			if got != tt.want {
+				t.Errorf("HasErrors() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

@@ -18,7 +18,7 @@ type GitExecutor interface {
 type Result struct {
 	Name   string
 	Passed bool
-	Error  error
+	Error  string
 	Hint   string
 }
 
@@ -44,11 +44,11 @@ func (r Results) String() string {
 			sb.WriteString(fmt.Sprintf("  ✅ %s\n", result.Name))
 		} else {
 			sb.WriteString(fmt.Sprintf("  ❌ %s\n", result.Name))
-			if result.Error != nil {
+			if result.Error != "" {
 				sb.WriteString(fmt.Sprintf("     Error: %s\n", result.Error))
 			}
 			if result.Hint != "" {
-				sb.WriteString(fmt.Sprintf("     Hint: %s\n", result.Hint))
+				sb.WriteString(fmt.Sprintf("     💡 %s\n", result.Hint))
 			}
 		}
 	}
@@ -61,17 +61,12 @@ type Checker struct {
 	targetBranch string
 }
 
-// New creates a new Checker
-func New(git GitExecutor) *Checker {
+// NewChecker creates a new Checker
+func NewChecker(git GitExecutor, targetBranch string) *Checker {
 	return &Checker{
-		git: git,
+		git:          git,
+		targetBranch: targetBranch,
 	}
-}
-
-// WithTargetBranch sets the target branch for merge checks
-func (c *Checker) WithTargetBranch(branch string) *Checker {
-	c.targetBranch = branch
-	return c
 }
 
 // RunAll runs all pre-flight checks
@@ -83,7 +78,7 @@ func (c *Checker) RunAll(ctx context.Context) Results {
 
 	// Check 2: Target branch exists (if specified)
 	if c.targetBranch != "" {
-		results = append(results, c.checkBranchExists(ctx))
+		results = append(results, c.checkBranchUpToDate(ctx))
 	}
 
 	return results
@@ -96,7 +91,7 @@ func (c *Checker) checkCleanTree(ctx context.Context) Result {
 		return Result{
 			Name:   "Clean working tree",
 			Passed: false,
-			Error:  err,
+			Error:  err.Error(),
 			Hint:   "Failed to check git status",
 		}
 	}
@@ -115,14 +110,14 @@ func (c *Checker) checkCleanTree(ctx context.Context) Result {
 	}
 }
 
-// checkBranchExists verifies target branch exists
-func (c *Checker) checkBranchExists(ctx context.Context) Result {
+// checkBranchUpToDate verifies target branch exists
+func (c *Checker) checkBranchUpToDate(ctx context.Context) Result {
 	exists, err := c.git.BranchExists(ctx, c.targetBranch)
 	if err != nil {
 		return Result{
 			Name:   fmt.Sprintf("Target branch '%s' exists", c.targetBranch),
 			Passed: false,
-			Error:  err,
+			Error:  err.Error(),
 			Hint:   "Failed to check if branch exists",
 		}
 	}
@@ -138,16 +133,5 @@ func (c *Checker) checkBranchExists(ctx context.Context) Result {
 	return Result{
 		Name:   fmt.Sprintf("Target branch '%s' exists", c.targetBranch),
 		Passed: true,
-	}
-}
-
-// CheckMergeConflicts performs a dry-run merge check (optional, can be called separately)
-func (c *Checker) CheckMergeConflicts(ctx context.Context, sourceBranch string) Result {
-	// This is a placeholder for future implementation
-	// Would use: git merge-tree or git merge --no-commit --no-ff
-	return Result{
-		Name:   "No merge conflicts",
-		Passed: true,
-		Hint:   "Merge conflict check not implemented yet",
 	}
 }
