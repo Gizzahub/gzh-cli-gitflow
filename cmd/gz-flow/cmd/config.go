@@ -40,6 +40,7 @@ func runConfig(cmd *cobra.Command, args []string) error {
 
 	if len(args) == 0 {
 		// Show all config
+		tagFormat := "v%s" //nolint:govet // literal string, not format
 		fmt.Println("Git-flow Configuration")
 		fmt.Println("======================")
 		fmt.Println("")
@@ -55,7 +56,7 @@ func runConfig(cmd *cobra.Command, args []string) error {
 		fmt.Println("Options:")
 		fmt.Println("  delete_branch_after_finish: true")
 		fmt.Println("  push_after_finish: false")
-		fmt.Println("  tag_format: v%s")
+		fmt.Println("  tag_format:", tagFormat)
 		return nil
 	}
 
