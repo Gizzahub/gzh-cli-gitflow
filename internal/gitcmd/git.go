@@ -34,8 +34,8 @@ func validateBranchName(name string) error {
 	if strings.HasPrefix(name, "-") {
 		return fmt.Errorf("branch name cannot start with '-'")
 	}
-	// Allow alphanumeric, slash, underscore, hyphen
-	if !regexp.MustCompile(`^[a-zA-Z0-9/_-]+$`).MatchString(name) {
+	// Allow alphanumeric, slash, underscore, hyphen, dot
+	if !regexp.MustCompile(`^[a-zA-Z0-9./_-]+$`).MatchString(name) {
 		return fmt.Errorf("branch name contains invalid characters")
 	}
 	return nil

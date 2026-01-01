@@ -37,10 +37,9 @@ func TestReleaseStartValidation(t *testing.T) {
 		errContains string
 	}{
 		{
-			name:        "valid semver - currently fails due to branch validation",
-			version:     "1.0.0",
-			wantErr:     true, // FIXME: Should pass when branch validator allows dots
-			errContains: "invalid branch name",
+			name:    "valid semver",
+			version: "1.0.0",
+			wantErr: false,
 		},
 		{
 			name:        "invalid with v prefix",
