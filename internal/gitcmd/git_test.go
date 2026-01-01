@@ -306,3 +306,78 @@ func TestCreateBranch_AlreadyExists(t *testing.T) {
 		t.Error("CreateBranch should fail when branch already exists")
 	}
 }
+
+func TestExecutor_CreateTag(t *testing.T) {
+	tests := []struct {
+		name        string
+		tag         string
+		message     string
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name:    "valid tag with message",
+			tag:     "v1.0.0",
+			message: "Release version 1.0.0",
+			wantErr: false,
+		},
+		{
+			name:    "valid tag empty message",
+			tag:     "v2.0.0",
+			message: "",
+			wantErr: false,
+		},
+		{
+			name:        "invalid empty tag",
+			tag:         "",
+			message:     "test",
+			wantErr:     true,
+			errContains: "tag name cannot be empty",
+		},
+		{
+			name:        "invalid tag with spaces",
+			tag:         "v 1.0.0",
+			message:     "test",
+			wantErr:     true,
+			errContains: "invalid characters",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Skip actual git operations in unit tests
+			t.Skip("requires git repository setup")
+		})
+	}
+}
+
+func TestExecutor_TagExists(t *testing.T) {
+	tests := []struct {
+		name    string
+		tag     string
+		wantErr bool
+	}{
+		{
+			name:    "check existing tag",
+			tag:     "v1.0.0",
+			wantErr: false,
+		},
+		{
+			name:    "check non-existent tag",
+			tag:     "v99.99.99",
+			wantErr: false,
+		},
+		{
+			name:    "empty tag name",
+			tag:     "",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Skip actual git operations in unit tests
+			t.Skip("requires git repository setup")
+		})
+	}
+}

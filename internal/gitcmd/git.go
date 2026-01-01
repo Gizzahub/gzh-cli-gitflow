@@ -41,6 +41,20 @@ func validateBranchName(name string) error {
 	return nil
 }
 
+// validateTagName validates a git tag name
+func validateTagName(tag string) error {
+	if tag == "" {
+		return fmt.Errorf("tag name cannot be empty")
+	}
+
+	// Check for invalid characters
+	if strings.ContainsAny(tag, " \t\n\r") {
+		return fmt.Errorf("tag name contains invalid characters")
+	}
+
+	return nil
+}
+
 // run executes a git command with the given arguments.
 // This is the ONLY place where exec.Command should be called.
 func (e *Executor) run(ctx context.Context, args ...string) (string, error) {
@@ -154,4 +168,40 @@ func (e *Executor) ListBranches(ctx context.Context, prefix string) ([]string, e
 		}
 	}
 	return branches, nil
+}
+
+// CreateTag creates an annotated tag at the current HEAD
+func (e *Executor) CreateTag(ctx context.Context, tag, message string) error {
+	if err := validateTagName(tag); err != nil {
+		return err
+	}
+
+	args := []string{"tag", "-a", tag}
+	if message != "" {
+		args = append(args, "-m", message)
+	} else {
+		args = append(args, "-m", tag)
+	}
+
+	_, err := e.run(ctx, args...)
+	if err != nil {
+		return fmt.Errorf("failed to create tag: %w", err)
+	}
+
+	return nil
+}
+
+// TagExists checks if a tag exists in the repository
+func (e *Executor) TagExists(ctx context.Context, tag string) (bool, error) {
+	if err := validateTagName(tag); err != nil {
+		return false, err
+	}
+
+	_, err := e.run(ctx, "rev-parse", tag)
+	if err != nil {
+		// Tag doesn't exist if rev-parse fails
+		return false, nil
+	}
+
+	return true, nil
 }
