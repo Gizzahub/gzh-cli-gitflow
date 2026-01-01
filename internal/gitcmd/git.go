@@ -197,10 +197,16 @@ func (e *Executor) TagExists(ctx context.Context, tag string) (bool, error) {
 		return false, err
 	}
 
-	_, err := e.run(ctx, "rev-parse", tag)
+	_, err := e.run(ctx, "rev-parse", "--verify", tag)
 	if err != nil {
-		// Tag doesn't exist if rev-parse fails
-		return false, nil
+		// Check if it's "not found" error vs other errors
+		errStr := err.Error()
+		if strings.Contains(errStr, "unknown revision") ||
+			strings.Contains(errStr, "not a valid ref") ||
+			strings.Contains(errStr, "Needed a single revision") {
+			return false, nil // tag doesn't exist - expected
+		}
+		return false, err // other error - unexpected
 	}
 
 	return true, nil
